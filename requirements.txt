@@ -1,0 +1,5 @@
+numpy
+matplotlib
+gym
+stable-baselines3
+Pillow
