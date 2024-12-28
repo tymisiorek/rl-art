@@ -8,7 +8,7 @@ class QLearningAgent:
         alpha=0.05, 
         gamma=0.9, 
         epsilon=1.0, 
-        epsilon_decay=0.995
+        epsilon_decay=0.999
     ):
         self.state_size = state_size
         self.action_size = action_size
@@ -21,8 +21,8 @@ class QLearningAgent:
     def get_action(self, state):
         """
         Epsilon-greedy strategy:
-        - With probability epsilon, explore (random action).
-        - Otherwise, exploit (choose action with max Q-value).
+        - With probability epsilon, pick a random action.
+        - Otherwise, pick the action with max Q-value.
         """
         state_key = self._state_to_key(state)
         if np.random.rand() < self.epsilon:
@@ -30,7 +30,10 @@ class QLearningAgent:
         return np.argmax(self.q_table.get(state_key, np.zeros(self.action_size)))
 
     def update_q_value(self, state, action, reward, next_state):
-        """Update Q(s,a) using the Q-learning update rule."""
+        """
+        Q-learning update rule:
+            Q(s,a) <- Q(s,a) + alpha * [reward + gamma * max Q(s',a') - Q(s,a)]
+        """
         state_key = self._state_to_key(state)
         next_state_key = self._state_to_key(next_state)
 
@@ -39,19 +42,19 @@ class QLearningAgent:
         if next_state_key not in self.q_table:
             self.q_table[next_state_key] = np.zeros(self.action_size)
 
-        best_next_action = np.max(self.q_table[next_state_key])
         current_q = self.q_table[state_key][action]
+        best_next_q = np.max(self.q_table[next_state_key])
 
         # Q-learning formula
-        new_q = (1 - self.alpha) * current_q + self.alpha * (reward + self.gamma * best_next_action)
+        new_q = (1 - self.alpha) * current_q + self.alpha * (reward + self.gamma * best_next_q)
         self.q_table[state_key][action] = new_q
 
     def decay_epsilon(self):
-        """Reduce exploration over time, but don't go below 0.1."""
+        """Slowly reduce exploration, down to a minimum of 0.1."""
         self.epsilon = max(0.1, self.epsilon * self.epsilon_decay)
 
     def _state_to_key(self, state):
         """
-        Convert a 2D (or 3D) array into a hashable type (tuple) for dictionary storage.
+        Flatten the 2D canvas into a 1D tuple for dictionary key usage.
         """
         return tuple(state.flatten())
