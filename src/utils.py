@@ -2,7 +2,10 @@ import imageio
 import os
 
 def create_animation(folder_path, output_file="animation.gif"):
-    """Creates a GIF from all PNG images in `folder_path`."""
+    """
+    Creates a GIF from all PNG images in `folder_path`, sorted by
+    the numeric episode index in the filename.
+    """
     images = []
     files = sorted(
         [f for f in os.listdir(folder_path) if f.endswith(".png")],
